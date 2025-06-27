@@ -1,0 +1,6 @@
+customtkinter
+opencv-python
+face_recognition
+Pillow
+pandas
+python-dotenv

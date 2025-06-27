@@ -1,0 +1,1 @@
+# Custom camera feed widget

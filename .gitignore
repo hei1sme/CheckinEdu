@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDE / Editor specific
+.idea/
+.vscode/
+*.swp
+
+# Data files that should not be in version control
+data/known_faces/
+data/attendance_logs/
+data/system_data/encoded_faces.pkl
+
+# Environment file
+.env

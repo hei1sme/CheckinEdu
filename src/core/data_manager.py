@@ -1,0 +1,1 @@
+# Handles course/class JSON operations
