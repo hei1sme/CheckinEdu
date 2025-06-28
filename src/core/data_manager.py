@@ -24,19 +24,21 @@ def load_data():
             if isinstance(data, dict):
                 return data
             else:
-                print("Warning: Data file is corrupted. Resetting to default.")
                 save_data(_get_default_structure())
                 return _get_default_structure()
     except (json.JSONDecodeError, FileNotFoundError):
-        print("Warning: Could not decode JSON data. Resetting to default.")
         save_data(_get_default_structure())
         return _get_default_structure()
 
 def save_data(data):
-    # (This function remains the same)
-    os.makedirs(os.path.dirname(DATA_FILE_PATH), exist_ok=True)
-    with open(DATA_FILE_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    try:
+        os.makedirs(os.path.dirname(DATA_FILE_PATH), exist_ok=True)
+        with open(DATA_FILE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except IOError as e:
+        pass
+    except Exception as e:
+        pass
 
 def add_course(course_name: str):
     data = load_data()

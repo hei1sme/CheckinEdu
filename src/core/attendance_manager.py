@@ -1,8 +1,17 @@
 import csv
 import os
+import re # Import the regex module
 from datetime import datetime
 
 LOGS_DIR = "data/attendance_logs"
+
+def _format_name_with_spaces(name_nospace):
+    """Converts 'LeNguyenGiaHung' back to 'Le Nguyen Gia Hung'."""
+    if not name_nospace:
+        return ""
+    # Use regex to find capital letters and insert a space before them
+    # then strip any leading space.
+    return re.sub(r"(\B[A-Z])", r" \1", name_nospace).strip()
 
 def log_attendance(student_info: str, course_name: str, class_name: str):
     """
@@ -21,12 +30,14 @@ def log_attendance(student_info: str, course_name: str, class_name: str):
     
     file_exists = os.path.isfile(filename)
     
-    # Split student_info to get ID and Name
     try:
-        student_id, full_name = student_info.split('_', 1)
+        # student_info is now "StudentID_FullNameNoSpace_Class"
+        student_id, name_nospace, student_class = student_info.split('_', 2)
     except ValueError:
-        print(f"Error: Invalid student_info format: {student_info}")
         return False
+
+    # --- NEW: Format the name for logging ---
+    full_name_with_spaces = _format_name_with_spaces(name_nospace)
 
     # Check for duplicates before writing
     if file_exists:
@@ -40,10 +51,10 @@ def log_attendance(student_info: str, course_name: str, class_name: str):
     # Log the new entry
     with open(filename, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        # Write header if the file is new
         if not file_exists:
             writer.writerow(['StudentID', 'FullName', 'Course', 'Class', 'Date', 'Time'])
         
-        writer.writerow([student_id, full_name, course_name, class_name, today_str, timestamp_str])
+        # --- USE THE FORMATTED NAME ---
+        writer.writerow([student_id, full_name_with_spaces, course_name, class_name, today_str, timestamp_str])
     
     return True # Indicate successful logging
