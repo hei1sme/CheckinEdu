@@ -1,6 +1,6 @@
 <br/>
 <p align="center">
-  <a href="https://github.com/he1isme/CheckinEdu">
+  <a href="https://github.com/hei1sme/CheckinEdu">
     <!-- IMPORTANT: Update this logo path -->
     <img src="assets/logo.png" alt="CheckinEdu Logo" width="120" height="120">
   </a>
@@ -10,35 +10,35 @@
   <p align="center">
     An intelligent desktop application for automated student attendance tracking using real-time facial recognition.
     <br />
-    <a href="https://github.com/he1isme/CheckinEdu/blob/main/docs/USAGE_GUIDE.md"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/hei1sme/CheckinEdu/blob/main/docs/USAGE_GUIDE.md"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/he1isme/CheckinEdu/issues">Report Bug</a>
+    <a href="https://github.com/hei1sme/CheckinEdu/issues">Report Bug</a>
     ·
-    <a href="https://github.com/he1isme/CheckinEdu/issues">Request Feature</a>
+    <a href="https://github.com/hei1sme/CheckinEdu/issues">Request Feature</a>
   </p>
 </p>
 
 <!-- BADGES -->
 <p align="center">
     <!-- Build Status -->
-    <a href="https://github.com/he1isme/CheckinEdu/actions/workflows/main.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/he1isme/CheckinEdu/main.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build Status">
+    <a href="https://github.com/hei1sme/CheckinEdu/actions/workflows/main.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/hei1sme/CheckinEdu/main.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build Status">
     </a>
     <!-- Code Quality -->
     <a href="https://sonarcloud.io/summary/new_code?id=your-org_your-repo">
         <img src="https://img.shields.io/sonar/quality_gate/your-org_your-repo?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarcloud" alt="Quality Gate">
     </a>
     <!-- License -->
-    <a href="https://github.com/he1isme/CheckinEdu/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/he1isme/CheckinEdu?style=for-the-badge" alt="License">
+    <a href="https://github.com/hei1sme/CheckinEdu/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/hei1sme/CheckinEdu?style=for-the-badge" alt="License">
     </a>
     <!-- Python Version -->
     <img src="https://img.shields.io/badge/Python-3.9+-blue.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
     <br/>
     <!-- Stars & Forks -->
-    <img src="https://img.shields.io/github/stars/he1isme/CheckinEdu?style=social" alt="Stars">
-    <img src="https://img.shields.io/github/forks/he1isme/CheckinEdu?style=social" alt="Forks">
+    <img src="https://img.shields.io/github/stars/hei1sme/CheckinEdu?style=social" alt="Stars">
+    <img src="https://img.shields.io/github/forks/hei1sme/CheckinEdu?style=social" alt="Forks">
 </p>
 
 ---
@@ -141,7 +141,7 @@ Ensure you have the following installed on your system:
 
 1.  **Clone the repository:**
     ```sh
-    git clone https://github.com/he1isme/CheckinEdu.git
+    git clone https://github.com/hei1sme/CheckinEdu.git
     cd CheckinEdu
     ```
 
@@ -237,7 +237,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Your Name - [@YourTwitterHandle](https://twitter.com/yourtwitterhandle) - your.email@example.com
 
-Project Link: [https://github.com/he1isme/CheckinEdu](https://github.com/he1isme/CheckinEdu)
+Project Link: [https://github.com/hei1sme/CheckinEdu](https://github.com/hei1sme/CheckinEdu)
 
 ---
 
