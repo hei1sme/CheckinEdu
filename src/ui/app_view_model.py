@@ -48,7 +48,7 @@ class AppViewModel:
         self.is_attendance_running = False
         self.students_logged_today = set()
         self.frame_counter = 0
-        self.process_every_n_frames = 2 # Reduced for more frequent bounding box updates
+        self.process_every_n_frames = 5 # Increased to reduce CPU load
         self.last_known_faces_with_status = []
 
         # --- NEW STATE for Confirmation ---

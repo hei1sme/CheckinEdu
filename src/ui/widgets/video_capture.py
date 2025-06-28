@@ -1,6 +1,8 @@
 import customtkinter as ctk
 import cv2
 from PIL import Image, ImageTk
+import threading
+import queue
 
 class VideoCapture(ctk.CTkFrame):
     def __init__(self, parent, initial_text="", view_model=None):
@@ -22,22 +24,32 @@ class VideoCapture(ctk.CTkFrame):
         self.faces_with_status = [] # Initialize faces_with_status
         self._after_id = None # To store the ID of the scheduled after call
 
+        # --- THREADING FOR IMAGE PROCESSING ---
+        self.processing_queue = queue.Queue(maxsize=1) # Raw frames for processing
+        self.display_queue = queue.Queue(maxsize=1)    # Processed CTkImages for display
+        self.processing_thread = None
+        self.stop_processing_event = threading.Event()
+
     def start_capture(self):
-        # Placeholder for starting the camera
         print("Starting video capture...")
         if self.view_model:
             self.cap = cv2.VideoCapture(self.view_model.camera_index)
         else:
             self.cap = cv2.VideoCapture(0)
-        # Set camera resolution for better performance
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         if not self.cap.isOpened():
             self.set_overlay_text("Error: Cannot open camera.")
             return
         self.set_overlay_text("") # Clear initial text
-        self._update_frame()
-        
+
+        # Start the image processing thread
+        self.stop_processing_event.clear()
+        self.processing_thread = threading.Thread(target=self._image_processing_worker, daemon=True)
+        self.processing_thread.start()
+
+        self._update_frame() # Start the UI update loop
+
     def stop_capture(self):
         if self.cap:
             self.cap.release()
@@ -45,9 +57,14 @@ class VideoCapture(ctk.CTkFrame):
         self.last_frame = None
         self.label_widget.configure(image=None)
         self.set_overlay_text("Camera Off")
-        if self._after_id: # Cancel any pending _update_frame calls
+        if self._after_id:
             self.after_cancel(self._after_id)
             self._after_id = None
+        
+        # Stop the image processing thread
+        self.stop_processing_event.set()
+        if self.processing_thread and self.processing_thread.is_alive():
+            self.processing_thread.join(timeout=1.0) # Wait for thread to finish
 
     def set_recognized_faces(self, faces_with_status):
         """
@@ -56,12 +73,59 @@ class VideoCapture(ctk.CTkFrame):
         """
         self.faces_with_status = faces_with_status
 
+    def _image_processing_worker(self):
+        while not self.stop_processing_event.is_set():
+            try:
+                # Get raw frame from the processing queue (blocking with timeout)
+                frame = self.processing_queue.get(timeout=0.1) 
+                
+                # Perform image processing
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                img = Image.fromarray(frame_rgb)
+
+                # Get widget dimensions (from main thread, might be slightly outdated but acceptable)
+                widget_w, widget_h = self.winfo_width(), self.winfo_height()
+                img_w, img_h = img.size
+
+                # Define a maximum internal rendering resolution for the video feed
+                MAX_RENDER_WIDTH = 1920
+                MAX_RENDER_HEIGHT = 1080
+
+                # Calculate scaling ratio to fit within widget AND max render resolution
+                ratio_widget = min(widget_w / img_w, widget_h / img_h) if img_w > 0 and img_h > 0 else 0
+                
+                # Calculate ratio to fit within max render resolution
+                ratio_max_render = min(MAX_RENDER_WIDTH / img_w, MAX_RENDER_HEIGHT / img_h) if img_w > 0 and img_h > 0 else 0
+
+                # Use the smaller of the two ratios to ensure we don't exceed max render resolution
+                # and still fit within the widget
+                final_ratio = min(ratio_widget, ratio_max_render)
+
+                new_w, new_h = int(img_w * final_ratio), int(img_h * final_ratio)
+
+                if new_w > 0 and new_h > 0:
+                    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                    photo = ctk.CTkImage(light_image=img, size=(new_w, new_h))
+                    
+                    # Put processed image into display queue
+                    try:
+                        self.display_queue.put_nowait(photo)
+                    except queue.Full:
+                        pass # Skip if queue is full (UI is not consuming fast enough)
+            except queue.Empty:
+                pass # No frame to process, continue loop
+            except Exception as e:
+                print(f"Image processing worker error: {e}")
+                # Optionally, log the error or set a flag to stop the worker
+
     def _update_frame(self):
         if self.cap and self.cap.isOpened():
             ret, frame = self.cap.read()
             if ret:
                 frame = cv2.flip(frame, 1)
-                # --- Always draw last known faces, even if not updated this frame ---
+                self.last_frame = frame.copy() # Store raw frame for get_frame()
+
+                # --- Draw overlays on the frame before sending to processing thread ---
                 faces_to_draw = self.faces_with_status if hasattr(self, 'faces_with_status') and self.faces_with_status else []
                 frame_h, frame_w = frame.shape[:2]
                 for name, (top, right, bottom, left), status, course, class_name, match_percent in faces_to_draw:
@@ -150,20 +214,22 @@ class VideoCapture(ctk.CTkFrame):
                             cv2.putText(frame, line, (x, y), font, font_scale, (255,255,255), 1, cv2.LINE_AA)
                         y += line_height + 6
 
-                self.last_frame = frame.copy()
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                img = Image.fromarray(frame_rgb)
-                widget_w, widget_h = self.winfo_width(), self.winfo_height()
-                img_w, img_h = img.size
-                ratio = min(widget_w/img_w, widget_h/img_h) if img_w > 0 and img_h > 0 else 0
-                new_w, new_h = int(img_w * ratio), int(img_h * ratio)
-                if new_w > 0 and new_h > 0:
-                    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-                    photo = ctk.CTkImage(light_image=img, size=(new_w, new_h))
+                # Put the frame with overlays into the processing queue
+                try:
+                    self.processing_queue.put_nowait(frame)
+                except queue.Full:
+                    pass # Skip if processing queue is full
+
+                # Try to get a processed image from the display queue
+                try:
+                    photo = self.display_queue.get_nowait()
                     self.label_widget.configure(image=photo, text="")
                     self.label_widget.image = photo
+                except queue.Empty:
+                    pass # No new image to display yet
+
         if self.cap and self.cap.isOpened():
-            self._after_id = self.after(15, self._update_frame)
+            self._after_id = self.after(30, self._update_frame) # Schedule next UI update
 
     # --- NEW PUBLIC METHODS ---
     def get_frame(self):

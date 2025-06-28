@@ -13,8 +13,7 @@ class App(ctk.CTk):
 
         # --- CONFIGURE WINDOW ---
         self.title("CheckinEdu - AI Attendance System")
-        self.geometry("1920x1080")
-        self.state('zoomed')  # Launch in maximized window
+        self.geometry("1920x1080") # Set a fixed window size
         self.configure(fg_color="#F9F9F9")
 
         # --- CONFIGURE GRID LAYOUT ---
