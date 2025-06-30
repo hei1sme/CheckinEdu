@@ -2,6 +2,41 @@ import cv2
 import numpy as np
 import os
 import pickle
+from PIL import Image, ExifTags
+
+def auto_rotate_if_landscape(img):
+    h, w = img.shape[:2]
+    if w > h:
+        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    return img
+
+def load_and_correct_orientation(image_path_or_array):
+    # Accepts either a file path or a numpy array (BGR)
+    if isinstance(image_path_or_array, str):
+        img = Image.open(image_path_or_array)
+    else:
+        img = Image.fromarray(cv2.cvtColor(image_path_or_array, cv2.COLOR_BGR2RGB))
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == "Orientation":
+                break
+        exif = img._getexif()
+        if exif is not None:
+            orientation_value = exif.get(orientation)
+            if orientation_value == 3:
+                img = img.rotate(180, expand=True)
+            elif orientation_value == 6:
+                img = img.rotate(270, expand=True)
+            elif orientation_value == 8:
+                img = img.rotate(90, expand=True)
+    except Exception:
+        pass
+    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    return auto_rotate_if_landscape(img)
+
+def apply_clahe(gray_img, clipLimit=2.0, tileGridSize=(8,8)):
+    clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+    return clahe.apply(gray_img)
 
 # Path to Haar Cascade XML (ensure this file is in your project or use OpenCV's default path)
 MODEL_PATH = "data/system_data/lbph_model.xml"
@@ -130,12 +165,19 @@ class HaarLBPHFaceEngine:
 
     def preprocess_face(self, face_img):
         # face_img: cropped BGR or grayscale
+        # Step 1: Orientation correction (if needed)
+        if isinstance(face_img, str) or (hasattr(face_img, 'shape') and len(face_img.shape) == 3):
+            face_img = load_and_correct_orientation(face_img)
+        # Step 2: Grayscale
         if len(face_img.shape) == 3:
             face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
+        # Step 3: Resize
         face_img = cv2.resize(face_img, FACE_SIZE)
-        face_img = cv2.equalizeHist(face_img)
+        # Step 4: CLAHE (adaptive histogram equalization)
+        face_img = apply_clahe(face_img)
+        # Step 5: Gaussian Blur
         face_img = cv2.GaussianBlur(face_img, (3, 3), 0)
-        # Optionally sharpen
+        # Step 6: Sharpening
         kernel = np.array([[0, -1, 0], [-1, 5,-1], [0, -1, 0]])
         face_img = cv2.filter2D(face_img, -1, kernel)
         return face_img

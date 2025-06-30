@@ -4,7 +4,7 @@ from tkinter import messagebox
 
 class AdminPanel(ctk.CTkFrame):
     def __init__(self, parent, view_model):
-        super().__init__(parent, fg_color="#F0F0F0")
+        super().__init__(parent, fg_color="#F0F0F0", corner_radius=24)
         self.view_model = view_model
         
         # --- 1. CREATE ALL TKINTER VARIABLES ---
@@ -13,33 +13,38 @@ class AdminPanel(ctk.CTkFrame):
         self.enroll_course_var = ctk.StringVar()
         self.enroll_class_var = ctk.StringVar()
         
-        # --- 2. CONFIGURE GRID ---
+        # --- BENTO GRID: 2 rows, 2 columns, center controls vertically ---
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1, uniform="a")
         self.grid_columnconfigure(1, weight=2, uniform="a")
-        self.grid_rowconfigure(0, weight=1)
 
-        # --- 3. CREATE FRAMES ---
-        self.controls_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.live_view_frame = ctk.CTkFrame(self, fg_color="transparent")
+        # --- Modern bento card for controls ---
+        self.controls_frame = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=18)
+        self.live_view_frame = ctk.CTkFrame(self, fg_color="#181818", corner_radius=24)
+
+        # Center controls_frame vertically and horizontally
+        self.controls_frame.grid(row=0, column=0, rowspan=2, sticky="ns", padx=40, pady=40)
+        self.live_view_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(0, 40), pady=40)
 
         # --- 4. CREATE ALL WIDGETS ---
         self.course_mgmt_label = ctk.CTkLabel(self.controls_frame, text="Course & Class Management", font=ctk.CTkFont(family="Poppins", size=18, weight="bold"), text_color="#333333")
-        self.course_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Enter New Course", font=ctk.CTkFont(family="Inter", size=14))
-        self.add_course_button = ctk.CTkButton(self.controls_frame, text="Add Course", command=self.on_add_course_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
-        self.mgmt_course_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.mgmt_course_var, values=["Loading..."], command=self.on_mgmt_course_selected, font=ctk.CTkFont(family="Inter", size=14))
-        self.remove_course_button = ctk.CTkButton(self.controls_frame, text="Delete Selected Course", fg_color="red", hover_color="#C0392B", command=self.on_remove_course_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
-        self.class_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Enter New Class for Selected Course", font=ctk.CTkFont(family="Inter", size=14))
-        self.add_class_button = ctk.CTkButton(self.controls_frame, text="Add Class", command=self.on_add_class_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
-        self.mgmt_class_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.mgmt_class_var, values=["Select course"], font=ctk.CTkFont(family="Inter", size=14))
-        self.remove_class_button = ctk.CTkButton(self.controls_frame, text="Delete Selected Class", fg_color="red", hover_color="#C0392B", command=self.on_remove_class_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
+        self.course_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Enter New Course", font=ctk.CTkFont(family="Inter", size=14), corner_radius=8)
+        self.add_course_button = ctk.CTkButton(self.controls_frame, text="Add Course", command=self.on_add_course_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
+        self.mgmt_course_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.mgmt_course_var, values=["Loading..."], command=self.on_mgmt_course_selected, font=ctk.CTkFont(family="Inter", size=14), corner_radius=10)
+        self.remove_course_button = ctk.CTkButton(self.controls_frame, text="Delete Selected Course", fg_color="red", hover_color="#C0392B", command=self.on_remove_course_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
+        self.class_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Enter New Class for Selected Course", font=ctk.CTkFont(family="Inter", size=14), corner_radius=8)
+        self.add_class_button = ctk.CTkButton(self.controls_frame, text="Add Class", command=self.on_add_class_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
+        self.mgmt_class_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.mgmt_class_var, values=["Select course"], font=ctk.CTkFont(family="Inter", size=14), corner_radius=10)
+        self.remove_class_button = ctk.CTkButton(self.controls_frame, text="Delete Selected Class", fg_color="red", hover_color="#C0392B", command=self.on_remove_class_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
         
         self.enroll_mgmt_label = ctk.CTkLabel(self.controls_frame, text="Student Enrollment", font=ctk.CTkFont(family="Poppins", size=18, weight="bold"), text_color="#333333")
-        self.student_id_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Student ID (e.g., SE194127)", font=ctk.CTkFont(family="Inter", size=14))
-        self.student_name_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Full Name (e.g., Le Nguyen Gia Hung)", font=ctk.CTkFont(family="Inter", size=14))
-        self.enroll_course_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.enroll_course_var, values=["Loading..."], command=self.on_enroll_course_selected, font=ctk.CTkFont(family="Inter", size=14))
-        self.enroll_class_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.enroll_class_var, values=["Select a course first"], font=ctk.CTkFont(family="Inter", size=14))
-        self.add_student_button = ctk.CTkButton(self.controls_frame, text="Add Student to Session", command=self.on_add_student_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
-        self.session_list_frame = ctk.CTkScrollableFrame(self.controls_frame, height=100, label_text="Session Queue")
+        self.student_id_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Student ID (e.g., SE194127)", font=ctk.CTkFont(family="Inter", size=14), corner_radius=8)
+        self.student_name_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="Full Name (e.g., Le Nguyen Gia Hung)", font=ctk.CTkFont(family="Inter", size=14), corner_radius=8)
+        self.enroll_course_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.enroll_course_var, values=["Loading..."], command=self.on_enroll_course_selected, font=ctk.CTkFont(family="Inter", size=14), corner_radius=10)
+        self.enroll_class_dropdown = ctk.CTkOptionMenu(self.controls_frame, variable=self.enroll_class_var, values=["Select a course first"], font=ctk.CTkFont(family="Inter", size=14), corner_radius=10)
+        self.add_student_button = ctk.CTkButton(self.controls_frame, text="Add Student to Session", command=self.on_add_student_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
+        self.session_list_frame = ctk.CTkScrollableFrame(self.controls_frame, height=100, label_text="Session Queue", corner_radius=10)
         
         self.retrain_button = ctk.CTkButton(
             self.controls_frame, 
@@ -47,23 +52,33 @@ class AdminPanel(ctk.CTkFrame):
             fg_color="#3498DB", 
             hover_color="#2874A6",
             command=self.on_retrain_click, # Add the command
-            font=ctk.CTkFont(family="Poppins", size=14, weight="bold")
+            font=ctk.CTkFont(family="Poppins", size=14, weight="bold"),
+            corner_radius=10
         )
 
         self.settings_label = ctk.CTkLabel(self.controls_frame, text="Application Settings", font=ctk.CTkFont(family="Poppins", size=18, weight="bold"), text_color="#333333")
         self.threshold_label = ctk.CTkLabel(self.controls_frame, text="Confirmation Threshold (frames):", font=ctk.CTkFont(family="Inter", size=14), text_color="#333333")
-        self.threshold_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="e.g., 3", font=ctk.CTkFont(family="Inter", size=14))
+        self.threshold_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="e.g., 3", font=ctk.CTkFont(family="Inter", size=14), corner_radius=8)
         self.camera_index_label = ctk.CTkLabel(self.controls_frame, text="Camera Index:", font=ctk.CTkFont(family="Inter", size=14), text_color="#333333")
-        self.camera_index_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="e.g., 0", font=ctk.CTkFont(family="Inter", size=14))
-        self.save_settings_button = ctk.CTkButton(self.controls_frame, text="Save Settings", command=self.on_save_settings_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
-        self.dashboard_button = ctk.CTkButton(self.controls_frame, text="Back to Dashboard", fg_color="#666666", hover_color="#555555", command=self.on_back_to_dashboard_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
+        self.camera_index_entry = ctk.CTkEntry(self.controls_frame, placeholder_text="e.g., 0", font=ctk.CTkFont(family="Inter", size=14), corner_radius=8)
+        self.save_settings_button = ctk.CTkButton(self.controls_frame, text="Save Settings", command=self.on_save_settings_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
+        self.dashboard_button = ctk.CTkButton(self.controls_frame, text="Back to Dashboard", fg_color="#666666", hover_color="#555555", command=self.on_back_to_dashboard_click, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
         
         self.video_capture = VideoCapture(self.live_view_frame, "Admin Panel Live View", self.view_model)
+        self.video_capture.pack(expand=True, fill="both", padx=24, pady=24)
+        # Set the flash effect callback for enrollment feedback
+        self.view_model.set_flash_effect_callback(self.video_capture.flash_effect)
 
+        # Set the camera overlay callback for enrollment feedback
+        def overlay_callback(text, duration_ms=None):
+            if duration_ms is not None:
+                self.video_capture.set_overlay_text(text, duration_ms=duration_ms)
+            else:
+                self.video_capture.set_overlay_text(text)
+        self.view_model.set_camera_overlay_callback(overlay_callback)
+        # Set the camera progress callback for image count feedback
+        self.view_model.set_camera_progress_callback(self.video_capture.set_progress_overlay_text)
         # --- 5. PLACE ALL WIDGETS ON THE GRID ---
-        self.controls_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
-        self.live_view_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 20), pady=20)
-        
         row = 0
         self.course_mgmt_label.grid(row=row, column=0, columnspan=2, sticky="w", pady=(0, 10)); row+=1
         self.course_entry.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 5)); row+=1
@@ -92,8 +107,6 @@ class AdminPanel(ctk.CTkFrame):
         self.camera_index_entry.grid(row=row, column=1, sticky="ew", padx=(5,0)); row+=1
         self.save_settings_button.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(5, 20)); row+=1
         self.dashboard_button.grid(row=row, column=0, columnspan=2, sticky="ew"); row+=1
-
-        self.video_capture.pack(expand=True, fill="both")
 
         # --- 6. BIND CALLBACKS & INITIALIZE ---
         self.view_model.update_enrollment_queue_callback = self.update_session_listbox
@@ -214,9 +227,14 @@ class AdminPanel(ctk.CTkFrame):
         current_frame = self.video_capture.get_frame()
         if current_frame is not None:
             if self.view_model.current_enrollment_student is not None:
-                self.view_model.capture_image_for_enrollment(current_frame)
-                self.video_capture.flash_effect()
-            else: pass
+                # Take 5 pictures in quick succession for this step
+                for _ in range(self.view_model.CAPTURE_IMAGES_PER_STEP):
+                    frame = self.video_capture.get_frame()
+                    if frame is not None:
+                        self.view_model.capture_image_for_enrollment(frame)
+                        self.video_capture.flash_effect()
+            else:
+                pass
     
     # --- NEW EVENT HANDLER for Re-Train Button ---
     def on_retrain_click(self):

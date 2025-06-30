@@ -17,6 +17,9 @@ class AppViewModel:
         self.update_capture_prompt_callback = None
         self.update_status_log_callback = None
         self.update_video_faces_callback = None
+        self.flash_effect_callback = None
+        self.update_camera_overlay_callback = None
+        self.update_camera_progress_callback = None
         self.face_engine = face_engine.HaarLBPHFaceEngine() # Create a single instance
         
         # --- DATA ---
@@ -31,24 +34,24 @@ class AppViewModel:
         self.enrollment_session_queue = []
         self.current_enrollment_student = None
         self.capture_step = 0
+        self.capture_step_image_count = 0  # New: count images per step
+        self.CAPTURE_IMAGES_PER_STEP = 5   # New: configurable images per step
         # --- NEW, MORE DETAILED PROMPTS ---
         self.capture_prompts = [
             "CAPTURE COMPLETE", # Index 0
-            "Step 1/8: Look STRAIGHT, Neutral Expression",
-            "Step 2/8: Look STRAIGHT, Big Smile",
-            "Step 3/8: Turn Head SLIGHTLY LEFT",
-            "Step 4/8: Turn Head SLIGHTLY RIGHT",
-            "Step 5/8: Look SLIGHTLY UP",
-            "Step 6/8: Look SLIGHTLY DOWN",
-            "Step 7/8: Tilt Head Left",
-            "Step 8/8: Tilt Head Right",
+            "Step 1/6: Look STRAIGHT, Neutral Expression",
+            "Step 2/6: Look STRAIGHT, Big Smile",
+            "Step 3/6: Turn Head SLIGHTLY LEFT",
+            "Step 4/6: Turn Head SLIGHTLY RIGHT",
+            "Step 5/6: Look SLIGHTLY UP",
+            "Step 6/6: Look SLIGHTLY DOWN",
         ]
         
         # --- DASHBOARD STATE ---
         self.is_attendance_running = False
         self.students_logged_today = set()
         self.frame_counter = 0
-        self.process_every_n_frames = 5 # Increased to reduce CPU load
+        self.process_every_n_frames = 2 # Increased to reduce CPU load
         self.last_known_faces_with_status = []
 
         # --- NEW STATE for Confirmation ---
@@ -175,6 +178,7 @@ class AppViewModel:
             if student['id'] == student_id:
                 self.current_enrollment_student = student
                 self.capture_step = 1 # Start with step 1
+                self.capture_step_image_count = 0 # Reset per step
                 self.update_ui_capture_prompt()
                 return
     
@@ -182,40 +186,64 @@ class AppViewModel:
         """Saves a pre-processed version of the frame for the current student."""
         if not self.current_enrollment_student or self.capture_step == 0:
             return
-            
+
         student_folder_name = f"{self.current_enrollment_student['id']}_{self.current_enrollment_student['name']}_{self.current_enrollment_student['class']}"
         student_dir = os.path.join(face_engine.KNOWN_FACES_DIR, student_folder_name)
         os.makedirs(student_dir, exist_ok=True)
-        
+
         # --- PRE-PROCESSING STEPS ---
         # 1. Detect faces in the frame
         faces = self.face_engine.detect_faces(frame)
-        
+
+        total_steps = 6
+        total_images = total_steps * self.CAPTURE_IMAGES_PER_STEP
+        current_image_index = (self.capture_step - 1) * self.CAPTURE_IMAGES_PER_STEP + self.capture_step_image_count + 1
+
         if len(faces) == 0:
-            self.update_status_log_callback("No face detected in the frame. Skipping image save.", "warning")
+            msg = f"No face detected. Skipping image {current_image_index}/{total_images}."
+            # No longer log to status log; only show overlay
+            if self.update_camera_overlay_callback:
+                self.update_camera_overlay_callback(msg, duration_ms=1500)
+            if self.flash_effect_callback:
+                self.flash_effect_callback()
             return # Do not increment capture_step if no face is detected
-            
+
         # Assuming only one face per capture for enrollment
         x, y, w, h = faces[0]
-        
+
         # 2. Crop the face from the frame
         face_img = frame[y:y+h, x:x+w]
-        
+
         # 3. Preprocess the cropped face (grayscale, histogram equalization)
         preprocessed_face = self.face_engine.preprocess_face(face_img)
-        
+
         # Save the pre-processed, cropped image
-        file_path = os.path.join(student_dir, f"{self.current_enrollment_student['id']}_{self.capture_step}.jpg")
+        file_path = os.path.join(student_dir, f"{self.current_enrollment_student['id']}_{self.capture_step}_{self.capture_step_image_count+1}.jpg")
         cv2.imwrite(file_path, preprocessed_face)
 
-        # Move to the next step
-        if self.capture_step < 8:
-            self.capture_step += 1
-        else:
-            self.capture_step = 0
-            self.current_enrollment_student = None
+        # Increment image count for this step
+        self.capture_step_image_count += 1
 
-        self.update_ui_capture_prompt()
+        msg = f"Captured image {current_image_index}/{total_images} successfully."
+        # No longer log to status log; only show overlay
+        if self.update_camera_progress_callback:
+            self.update_camera_progress_callback(msg)
+        if self.flash_effect_callback:
+            self.flash_effect_callback()
+
+        if self.capture_step_image_count < self.CAPTURE_IMAGES_PER_STEP:
+            # Stay on this step, prompt user
+            self.update_ui_capture_prompt()
+        else:
+            # Move to next step
+            if self.capture_step < 6:
+                self.capture_step += 1
+                self.capture_step_image_count = 0
+            else:
+                self.capture_step = 0
+                self.current_enrollment_student = None
+                self.capture_step_image_count = 0
+            self.update_ui_capture_prompt()
 
     # --- NEW DELETION COMMANDS ---
     def remove_course(self, course_name):
@@ -288,6 +316,15 @@ class AppViewModel:
         self.update_enrollment_queue_callback = update_queue
         self.update_capture_prompt_callback = update_prompt
 
+    def set_flash_effect_callback(self, callback):
+        self.flash_effect_callback = callback
+
+    def set_camera_overlay_callback(self, callback):
+        self.update_camera_overlay_callback = callback
+
+    def set_camera_progress_callback(self, callback):
+        self.update_camera_progress_callback = callback
+
     def set_dashboard_callbacks(self, update_status, update_faces):
         self.update_status_log_callback = update_status
         self.update_video_faces_callback = update_faces
@@ -298,10 +335,17 @@ class AppViewModel:
             self.update_enrollment_queue_callback(self.enrollment_session_queue)
 
     def update_ui_capture_prompt(self):
-        """Calls the UI callback to update the video overlay prompt."""
+        """Calls the UI callback to update the video overlay prompt and clears progress if enrollment ends."""
+        prompt = self.capture_prompts[self.capture_step]
         if self.update_capture_prompt_callback:
-            prompt = self.capture_prompts[self.capture_step]
             self.update_capture_prompt_callback(prompt)
+        # Always set the persistent step prompt in the center overlay
+        if self.update_camera_overlay_callback:
+            self.update_camera_overlay_callback(prompt)
+        # Clear progress overlay if enrollment is not active
+        if self.update_camera_progress_callback:
+            if self.capture_step == 0 or self.current_enrollment_student is None:
+                self.update_camera_progress_callback("")
 
     # --- THE MAIN RECOGNITION LOOP ---
     def start_attendance_loop(self, get_frame_func, course, class_name, tolerance):
@@ -318,6 +362,11 @@ class AppViewModel:
         self.current_class_name = class_name
         self.current_tolerance = tolerance
         
+        # Reset state for the new attendance session to prevent carry-over data
+        self.students_logged_today.clear()
+        self.recognition_buffer.clear()
+        self.last_known_faces_with_status = []
+
         # Ensure any previous recognition thread is stopped before starting a new one
         if self.recognition_thread and self.recognition_thread.is_alive():
             self.stop_attendance_loop() # This will set the stop event and join the thread
@@ -379,6 +428,7 @@ class AppViewModel:
                                     del self.recognition_buffer[student_id]
                             else:
                                 status = "Known"
+                                # Only increment if detected in this frame; reset if missed (handled below)
                                 self.recognition_buffer[student_id] = self.recognition_buffer.get(student_id, 0) + 1
                                 if self.recognition_buffer[student_id] >= self.CONFIRMATION_THRESHOLD:
                                     was_logged = attendance_manager.log_attendance(name, course, class_name)
@@ -399,6 +449,12 @@ class AppViewModel:
                                 else:
                                     status = f"Verifying ({self.recognition_buffer[student_id]}/{self.CONFIRMATION_THRESHOLD})"
                         faces_with_status.append((name, (y, x+w, y+h, x), status, course, class_name, match_percent))
+                    
+                    # Reset recognition_buffer for students NOT detected in this frame
+                    for sid in list(self.recognition_buffer.keys()):
+                        if sid not in recognized_ids_in_frame:
+                            self.recognition_buffer[sid] = 0
+                    
                     # Put results into the queue for the main thread to pick up
                     self.recognition_queue.put(("update_faces", faces_with_status))
             # Small sleep to prevent busy-waiting and allow other threads to run

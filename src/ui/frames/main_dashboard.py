@@ -4,7 +4,7 @@ from PIL import Image # Import Image from PIL
 
 class MainDashboard(ctk.CTkFrame):
     def __init__(self, parent, view_model):
-        super().__init__(parent, fg_color="#F9F9F9")
+        super().__init__(parent, fg_color="#F9F9F9", corner_radius=24)
         self.view_model = view_model
         self.parent = parent
 
@@ -14,80 +14,65 @@ class MainDashboard(ctk.CTkFrame):
         self.grid_rowconfigure(0, weight=1)
 
         # --- LEFT FRAME: CONTROLS ---
-        self.controls_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.controls_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        self.controls_frame = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=18)
+        self.controls_frame.grid(row=0, column=0, sticky="ns", padx=40, pady=40)
 
         # --- Right FRAME: Live View ---
-        self.live_view_frame = ctk.CTkFrame(self, fg_color="black") # Black background for camera
-        self.live_view_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 20), pady=20)
+        self.live_view_frame = ctk.CTkFrame(self, fg_color="#181818", corner_radius=24) # Dark background for camera
+        self.live_view_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 40), pady=40)
         
         # --- WIDGETS FOR CONTROLS FRAME ---
-        # 0. School Logo and Text
-        self.logo_image = ctk.CTkImage(Image.open("assets/school_logo.png"), size=(534, 150)) # Resized to maintain aspect ratio
-        self.logo_label = ctk.CTkLabel(self.controls_frame, image=self.logo_image, text="")
-        self.logo_label.pack(pady=(0, 10), anchor="center")
+        self.logo_image = ctk.CTkImage(Image.open("assets/school_logo.png"), size=(534, 150))
+        self.logo_label = ctk.CTkLabel(self.controls_frame, image=self.logo_image, text="", corner_radius=12)
+        self.logo_label.pack(pady=(0, 16), anchor="center")
 
-        
-
-        # 1. Title
         self.title_label = ctk.CTkLabel(self.controls_frame, text="CheckinEdu", font=ctk.CTkFont(family="Playfair Display", size=32, weight="bold"), text_color="#ED6B1D")
-        self.title_label.pack(pady=(0, 20), anchor="w")
+        self.title_label.pack(pady=(0, 24), anchor="w")
 
-        # 2. Course and Class Selection
         self.course_label = ctk.CTkLabel(self.controls_frame, text="Select Course", font=ctk.CTkFont(family="Inter", size=14), text_color="#333333")
         self.course_label.pack(anchor="w")
-        self.course_dropdown = ctk.CTkOptionMenu(self.controls_frame, values=["Loading..."])
+        self.course_dropdown = ctk.CTkOptionMenu(self.controls_frame, values=["Loading..."], corner_radius=10)
         self.course_dropdown.pack(fill="x", pady=(0, 10))
 
         self.class_label = ctk.CTkLabel(self.controls_frame, text="Select Class", font=ctk.CTkFont(family="Inter", size=14), text_color="#333333")
         self.class_label.pack(anchor="w")
-        self.class_dropdown = ctk.CTkOptionMenu(self.controls_frame, values=["Select a course first"])
+        self.class_dropdown = ctk.CTkOptionMenu(self.controls_frame, values=["Select a course first"], corner_radius=10)
         self.class_dropdown.pack(fill="x", pady=(0, 20))
         
-        # 3. Recognition Sensitivity
         self.tolerance_label = ctk.CTkLabel(self.controls_frame, text="Recognition Sensitivity:", font=ctk.CTkFont(family="Inter", size=14), text_color="#333333")
         self.tolerance_label.pack(anchor="w")
         self.tolerance_value_label = ctk.CTkLabel(self.controls_frame, text="", font=ctk.CTkFont(family="Inter", size=12), text_color="#333333")
         self.tolerance_value_label.pack(anchor="w", padx=5)
-        self.tolerance_slider = ctk.CTkSlider(self.controls_frame, from_=0.4, to=0.7, number_of_steps=6)
+        self.tolerance_slider = ctk.CTkSlider(self.controls_frame, from_=0.4, to=0.7, number_of_steps=6, corner_radius=8)
         self.tolerance_slider.set(0.5)
         self.tolerance_slider.pack(fill="x", pady=(0, 20))
 
-        # 4. Action Buttons
-        self.start_button = ctk.CTkButton(self.controls_frame, text="Start Attendance", fg_color="#ED6B1D", hover_color="#BF5616", font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
+        self.start_button = ctk.CTkButton(self.controls_frame, text="Start Attendance", fg_color="#ED6B1D", hover_color="#BF5616", font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
         self.start_button.pack(fill="x", pady=5)
-        self.admin_button = ctk.CTkButton(self.controls_frame, text="Admin Panel", command=self.parent.request_admin_login_dialog, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
+        self.admin_button = ctk.CTkButton(self.controls_frame, text="Admin Panel", command=self.parent.request_admin_login_dialog, font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
         self.admin_button.pack(fill="x", pady=5)
-        self.exit_button = ctk.CTkButton(self.controls_frame, text="Finish & Exit", fg_color="#666666", hover_color="#555555", font=ctk.CTkFont(family="Poppins", size=14, weight="bold"))
-        self.exit_button.pack(fill="x", side="bottom") # Puts it at the bottom
-        
-        # 5. Status Log
+        self.exit_button = ctk.CTkButton(self.controls_frame, text="Finish & Exit", fg_color="#666666", hover_color="#555555", font=ctk.CTkFont(family="Poppins", size=14, weight="bold"), corner_radius=10)
+        self.exit_button.pack(fill="x", side="bottom", pady=(10, 0))
+
         self.status_label = ctk.CTkLabel(self.controls_frame, text="Status Log", font=ctk.CTkFont(family="Inter", size=14), text_color="#333333")
         self.status_label.pack(anchor="w", pady=(20, 0))
-        self.status_log = ctk.CTkTextbox(self.controls_frame, height=150, font=ctk.CTkFont(family="Inter", size=12))
+        self.status_log = ctk.CTkTextbox(self.controls_frame, height=150, font=ctk.CTkFont(family="Inter", size=12), corner_radius=10)
         self.status_log.pack(expand=True, fill="both", anchor="s")
         self.status_log.configure(state="disabled")
 
-        # --- WIDGETS FOR LIVE VIEW FRAME ---
         self.video_capture = VideoCapture(self.live_view_frame, "Press 'Start Attendance' to begin", self.view_model)
-        self.video_capture.pack(expand=True, fill="both")
+        self.video_capture.pack(expand=True, fill="both", padx=24, pady=24)
 
-        # --- Store a reference to the ViewModel's app_window_ref ---
-        # This is needed for the 'after' loop in the ViewModel
         self.view_model.app_window_ref = parent
-
-        # --- BIND VIEWMODEL CALLBACKS ---
         self.view_model.set_dashboard_callbacks(
             update_status=self.log_to_status_box,
             update_faces=self.video_capture.set_recognized_faces
         )
-
-        # --- CONNECT WIDGETS ---
         self.course_dropdown.configure(command=self.on_course_selected)
         self.start_button.configure(command=self.toggle_attendance)
-        self.exit_button.configure(command=self.parent.destroy) # Closes the app
+        self.exit_button.configure(command=self.parent.destroy)
         self.tolerance_slider.configure(command=self.update_tolerance_label)
-        self.update_tolerance_label(self.tolerance_slider.get()) # Set initial value
+        self.update_tolerance_label(self.tolerance_slider.get())
 
     # --- RENAME refresh_dropdowns to on_show ---
     def on_show(self):
