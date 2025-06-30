@@ -1,4 +1,4 @@
 {
-    "confirmation_threshold": 30,
+    "confirmation_threshold": 25,
     "camera_index": 0
 }

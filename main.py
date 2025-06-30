@@ -13,8 +13,10 @@ class App(ctk.CTk):
 
         # --- CONFIGURE WINDOW ---
         self.title("CheckinEdu - AI Attendance System")
-        self.geometry("1920x1080") # Set a fixed window size
+        self.geometry("1920x1080")
+        self.minsize(1200, 800)
         self.configure(fg_color="#F9F9F9")
+        # Note: CTk does not support corner_radius for the main window, but all child frames use it.
 
         # --- CONFIGURE GRID LAYOUT ---
         self.grid_rowconfigure(0, weight=1)
