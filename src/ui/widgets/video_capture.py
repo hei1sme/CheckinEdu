@@ -37,6 +37,7 @@ class VideoCapture(ctk.CTkFrame):
         self.cap = None
         self.view_model = view_model
         self.last_frame = None
+        self.detected_faces = [] # For admin panel raw detection
         self.faces_with_status = [] # Initialize faces_with_status
         self._after_id = None # To store the ID of the scheduled after call
 
@@ -96,6 +97,10 @@ class VideoCapture(ctk.CTkFrame):
         """
         self.faces_with_status = faces_with_status
 
+    def set_detected_faces(self, faces):
+        """Sets raw face rectangles for display in the admin panel."""
+        self.detected_faces = faces
+
     def _image_processing_worker(self):
         while not self.stop_processing_event.is_set():
             try:
@@ -150,6 +155,11 @@ class VideoCapture(ctk.CTkFrame):
 
                 # --- Draw overlays on the frame before sending to processing thread ---
                 if self.enable_overlays:
+                    # Draw raw detection boxes for admin panel
+                    if self.detected_faces is not None and len(self.detected_faces) > 0:
+                        for (x, y, w, h) in self.detected_faces:
+                            cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2) # Blue box
+
                     faces_to_draw = self.faces_with_status if hasattr(self, 'faces_with_status') and self.faces_with_status else []
                     frame_h, frame_w = frame.shape[:2]
                     for name, (top, right, bottom, left), status, course, class_name, match_percent in faces_to_draw:
@@ -160,7 +170,7 @@ class VideoCapture(ctk.CTkFrame):
                         raw_name = name.split('_')[1] if '_' in name and len(name.split('_')) > 1 else name
 
                         # Format match percent as integer percentage string if present
-                        match_percent_str = f"Match: {int(round(match_percent))}%" if match_percent is not None else None
+                        match_percent_str = None
 
                         if status == "Attended":
                             box_color = (237, 107, 29) # FPT Orange

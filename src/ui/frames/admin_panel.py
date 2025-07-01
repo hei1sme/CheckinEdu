@@ -223,6 +223,17 @@ class AdminPanel(ctk.CTkFrame):
     def on_student_select_for_capture(self, student_id):
         self.view_model.start_capture_for_student(student_id)
 
+    def start_detection_loop(self):
+        # This loop runs continuously in the admin panel
+        frame = self.video_capture.get_frame()
+        if frame is not None:
+            # Use the view_model's face_engine to detect faces
+            faces = self.view_model.face_engine.detect_faces(frame)
+            # Pass raw face rectangles to the video capture widget
+            self.video_capture.set_detected_faces(faces)
+        # Reschedule the loop
+        self.after(100, self.start_detection_loop) # Run every 100ms
+
     def handle_spacebar_capture(self):
         current_frame = self.video_capture.get_frame()
         if current_frame is not None:

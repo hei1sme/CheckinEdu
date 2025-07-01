@@ -50,9 +50,9 @@ This document maps the core functions required by the CPV301 Assignment to their
 *   **Code Files & Summary:**
     *   `src/core/face_engine_haar_lbph.py`
         *   **`preprocess_face(self, face_img)` method:** This method applies a series of image processing steps to a given face image to enhance it for recognition. These steps include:
-            *   Conversion to grayscale (`cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)`).
+            *   Automatic orientation correction for images with EXIF data.
+            *   Conversion to grayscale using `cv2.cvtColor`.
             *   Resizing to a standard `FACE_SIZE` (150x150 pixels).
-            *   Histogram Equalization (`cv2.equalizeHist`) for light balance and contrast enhancement.
+            *   Contrast Limited Adaptive Histogram Equalization (CLAHE) using `cv2.createCLAHE` for localized contrast enhancement, which is more robust to lighting variations.
             *   Gaussian Blur (`cv2.GaussianBlur`) for noise reduction.
             *   Sharpening (`cv2.filter2D`) to enhance facial features.
-

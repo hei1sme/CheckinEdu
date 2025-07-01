@@ -147,7 +147,7 @@ class HaarLBPHFaceEngine:
 
     def detect_faces(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+        faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(50, 50))
         return faces  # list of (x, y, w, h)
 
     def recognize_face(self, face_img, confidence_threshold=75):
@@ -177,9 +177,6 @@ class HaarLBPHFaceEngine:
         face_img = apply_clahe(face_img)
         # Step 5: Gaussian Blur
         face_img = cv2.GaussianBlur(face_img, (3, 3), 0)
-        # Step 6: Sharpening
-        kernel = np.array([[0, -1, 0], [-1, 5,-1], [0, -1, 0]])
-        face_img = cv2.filter2D(face_img, -1, kernel)
         return face_img
 
     def set_label_map(self, label_map):

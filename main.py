@@ -51,6 +51,7 @@ class App(ctk.CTk):
         
         if page_name == "AdminPanel":
             self.frames["AdminPanel"].video_capture.start_capture()
+            self.frames["AdminPanel"].start_detection_loop() # Start the loop
         else: # This includes the MainDashboard
             self.frames["AdminPanel"].video_capture.stop_capture()
             

@@ -35,7 +35,7 @@ class AppViewModel:
         self.current_enrollment_student = None
         self.capture_step = 0
         self.capture_step_image_count = 0  # New: count images per step
-        self.CAPTURE_IMAGES_PER_STEP = 5   # New: configurable images per step
+        self.CAPTURE_IMAGES_PER_STEP = 10   # New: configurable images per step
         # --- NEW, MORE DETAILED PROMPTS ---
         self.capture_prompts = [
             "CAPTURE COMPLETE", # Index 0
@@ -51,7 +51,7 @@ class AppViewModel:
         self.is_attendance_running = False
         self.students_logged_today = set()
         self.frame_counter = 0
-        self.process_every_n_frames = 2 # Increased to reduce CPU load
+        self.process_every_n_frames = 3 # Increased to reduce CPU load
         self.last_known_faces_with_status = []
 
         # --- NEW STATE for Confirmation ---
@@ -418,8 +418,9 @@ class AppViewModel:
                         match_percent = None
                         student_id = None
                         if name != "Unknown" and confidence is not None:
-                            # Convert distance (lower is better) to a match percentage
-                            match_percent = max(0, 100 * (1 - (confidence / lbph_confidence_threshold)))
+                            # Convert distance to a more intuitive match percentage. A confidence of 0 is a 100% match.
+                            # A confidence equal to the threshold is re-mapped to a 40% match.
+                            match_percent = 100 - (60 * confidence / lbph_confidence_threshold)
                             student_id = name.split('_')[0]
                             recognized_ids_in_frame.add(student_id)
                             if student_id in self.students_logged_today:
