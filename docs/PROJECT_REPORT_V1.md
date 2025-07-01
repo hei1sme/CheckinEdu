@@ -202,7 +202,7 @@ Kiến trúc này đảm bảo rằng logic xử lý (trong `AppViewModel` và `
 - **Tiền xử lý:** Chuyển grayscale, thay đổi kích thước, cân bằng biểu đồ thích ứng cục bộ (CLAHE), làm mờ Gaussian. (Chi tiết tại mục 3.5)
 - **Nhận diện:** LBPH (OpenCV), lưu model XML và label map PKL - `recognize_face()`. (Chi tiết tại mục 3.4)
 - **Đa luồng:** Nhận diện chạy trên thread riêng, cập nhật kết quả lên UI theo thời gian thực.
-- **Lưu trữ:** Dữ liệu khóa/lớp (JSON), log điểm danh (CSV), model (XML, PKL).
+- **Lưu trữ:** Dữ liệu khóa/lớp (JSON), log điểm danh (CSV), model (XML, PKL)..
 
 ---
 
